@@ -1,3 +1,9 @@
+let canvas;
+let recorder;
+let recording = false;
+let recordedChunks = [];
+
+
 let dataPoints = [];
 let hoverData = null;
 
@@ -7,16 +13,19 @@ async function preload() {
 
 function setup() {
   const size = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.9);
-  const canvas = createCanvas(size, size);
+  canvas = createCanvas(size, size);
   canvas.parent("container");
   colorMode(HSB, 360, 100, 100, 1.0);
+
+  setupRecording();
 }
 
 function draw() {
 
   //transparent bg
-  background(0, 0, 100);
-  clear();
+  // background(0, 0, 100);
+  background(219, 100, 33)
+  // clear();
   noFill();
 
   const maxData = Math.max(...dataPoints.map(d => d.data || 0), 1);
@@ -109,5 +118,69 @@ function windowResized() {
   if (document.getElementById("container")) {
     const size = Math.min(window.innerWidth * 0.9, window.innerHeight * 0.9);
     resizeCanvas(size, size);
+  }
+}
+
+
+function setupRecording() {
+  const startBtn = document.getElementById('startRecord');
+  const stopBtn = document.getElementById("stopRecord"); 
+  const downloadBtn = document.getElementById("download");
+
+  startBtn.addEventListener('click', startRecording);
+  stopBtn.addEventListener("click", stopRecording);
+  downloadBtn.addEventListener("click", downloadVideo);
+}
+
+function startRecording() {
+  recordedChunks = [];
+
+  const stream = canvas.canvas.captureStream(30)
+
+  recorder = new MediaRecorder(stream, {
+    mimeType: "video/webm;codecs=vp8",
+  });
+
+  recorder.ondataavailable = (e) => {
+    if(e.data.size > 0) {
+      recordedChunks.push(e.data);
+    }
+  };
+
+  recorder.onstop = () => {
+    document.getElementById('download').disabled = false
+  };
+
+  recorder.start();
+  recording = true;
+
+  document.getElementById('startRecord').disabled = true;
+  document.getElementById("stopRecord").disabled = false;
+}
+
+function stopRecording() {
+  if(recorder && recording) {
+    recorder.stop();
+    recording = false;
+
+    document.getElementById("startRecord").disabled = false;
+    document.getElementById("stopRecord").disabled = true;
+  }
+}
+
+function downloadVideo() {
+  if(recordedChunks.length > 0) {
+    const blob = new Blob(recordedChunks, {
+      type: 'video/webm'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `animation_${Date.now()}.webm`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+
   }
 }
