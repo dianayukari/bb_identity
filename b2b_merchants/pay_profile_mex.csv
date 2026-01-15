@@ -1,0 +1,25 @@
+"country","merchant_vertical_commercial","metodo_de_pagamento_ajustado","source","type","value"
+"Mexico","SaaS","Credit Card","PCMI","pct_tpv_ebanx_b2b",0.43
+"Mexico","SaaS","Credit Card","PCMI","market_average",0.45
+"Mexico","SaaS","Debit Card","PCMI","pct_tpv_ebanx_b2b",0.47
+"Mexico","SaaS","Debit Card","PCMI","market_average",0.3
+"Mexico","SaaS","Mercado Pago","PCMI","pct_tpv_ebanx_b2b",0.05
+"Mexico","SaaS","Mercado Pago","PCMI","market_average",0.1
+"Mexico","SaaS","OXXO","PCMI","pct_tpv_ebanx_b2b",0.01
+"Mexico","SaaS","OXXO","PCMI","market_average",0.01
+"Mexico","SaaS","Spei","PCMI","pct_tpv_ebanx_b2b",0.04
+"Mexico","SaaS","Spei","PCMI","market_average",0.06
+"Mexico","SaaS","Other","PCMI","pct_tpv_ebanx_b2b",0
+"Mexico","SaaS","Other","PCMI","market_average",0.08
+"Mexico","Social Media","Credit Card","PCMI","pct_tpv_ebanx_b2b",0.05
+"Mexico","Social Media","Credit Card","PCMI","market_average",0.37
+"Mexico","Social Media","Debit Card","PCMI","pct_tpv_ebanx_b2b",0.01
+"Mexico","Social Media","Debit Card","PCMI","market_average",0.35
+"Mexico","Social Media","Mercado Pago","PCMI","pct_tpv_ebanx_b2b",0.17
+"Mexico","Social Media","Mercado Pago","PCMI","market_average",0.09
+"Mexico","Social Media","OXXO","PCMI","pct_tpv_ebanx_b2b",0.29
+"Mexico","Social Media","OXXO","PCMI","market_average",0.06
+"Mexico","Social Media","Spei",NA,"pct_tpv_ebanx_b2b",0.48
+"Mexico","Social Media","Spei",NA,"market_average",0.06
+"Mexico","Social Media","Other","PCMI","pct_tpv_ebanx_b2b",0
+"Mexico","Social Media","Other","PCMI","market_average",0.07
