@@ -22,6 +22,27 @@
 
     .containers {
         display: flex;
+        flex-wrap: wrap;
+    }
+
+    .legend {
+        display: flex;
+        flex-basis: 100%;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .tooltip {
+        position: absolute;
+        opacity: 0;
+        background-color: #F3F3F3;
+        font-size: 14px;
+        padding: 6px 10px;
+        color: #333333;
+        border-radius: 4px;
+        white-space: nowrap;
+        box-shadow: 3px 3px 10px #808080;
+        pointer-events: none;
     }
 
     .container_br, .container_mex {
@@ -35,18 +56,18 @@
 </style>
 <body>
     <div class="containers">
+        <div class="legend"></div>
+        <div class="tooltip"></div>
         <div class="container_br">
             <div>
                 <h2>Brazil</h2>
             </div>
-            <div class="tooltip-container"></div>
         </div>
 
         <div class="container_mex">
             <div>
                 <h2>Mexico</h2>
             </div>
-            <div class="tooltip-container"></div>
         </div>
     </div>
 

@@ -7,6 +7,8 @@ let lightNeonGreen = "#F6FAE6";
 const container_br = d3.select(".container_br");
 const margin = { top: 10, right: 20, bottom: 20, left: 110 };
 
+const tooltip = d3.select(".tooltip")
+
 let width =
   Math.min(container_br.node().getBoundingClientRect().width, 1200) || 400;
 let height = 200;
@@ -14,6 +16,38 @@ let height = 200;
 let boundedWidth = width - margin.left - margin.right;
 let boundedHeight = height - margin.top - margin.bottom;
 
+//LEGEND
+  const globalLegend = d3.select(".legend")
+   
+  const ebanxLegend = globalLegend.append("div")
+    .style("display", "flex")
+    .style("align-items", "center")
+    .style("gap", "5px");
+
+  ebanxLegend.append("div")
+    .style("width", "15px")
+    .style("height", "15px")
+    .style("background", purple100);
+
+  ebanxLegend.append("span").style("font-size", "13px").text("EBANX Merchants");
+
+    const marketLegend = globalLegend.append("div")
+      .style("display", "flex")
+      .style("align-items", "center")
+      .style("gap", "5px");
+
+    marketLegend.append("div")
+      .style("width", "12px")
+      .style("height", "12px")
+      .style("background", darkOrange)
+      .style("border", `2px solid ${lightNeonGreen}`)
+      .style("border-radius", "50%");
+
+    marketLegend.append("span")
+      .style("font-size", "13px")
+      .text("Market Average");
+
+//read and parse data
 d3.csv("pay_profile_br.csv", (d) => ({
  
     vertical: d.merchant_vertical_commercial,
@@ -30,10 +64,10 @@ d3.csv("pay_profile_br.csv", (d) => ({
 
 });
 
+
 function initChartBr() {
   const groupedEbanx = d3.group(data_ebanx, (d) => d.vertical);
   const groupedMarket = d3.group(data_market, (d) => d.vertical);
-
 
   const verticals = Array.from(groupedEbanx, ([vertical, methods]) => ({
     vertical: vertical,
@@ -70,27 +104,50 @@ function createBarChart(verticalData, index, container) {
 
     //draw bars
     g.selectAll(".bar")
-        .data(verticalData.methods)
-        .enter()
-        .append("rect")
-        .attr("class", "bar")
-        .attr("x", 0)
-        .attr("y", d => yScale(d.method))
-        .attr("width", d => xScale(d.value))
-        .attr("height", yScale.bandwidth())
-        .attr("fill", purple100)
+      .data(verticalData.methods)
+      .enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("x", 0)
+      .attr("y", (d) => yScale(d.method))
+      .attr("width", (d) => xScale(d.value))
+      .attr("height", yScale.bandwidth())
+      .attr("fill", purple100)
+      .on("mouseover", function (event, d) {
+          tooltip.transition().duration(200).style("opacity", 1);
+          tooltip.html(
+              `<div><strong style="color: ${purple100}">EBANX Merchants:</strong> ${d.value.toFixed(0)}</div>`
+          )
+          .style("left", event.pageX + 10 + "px")
+          .style("top", event.pageY - 10 + "px");
+      })
+      .on("mouseout", function (event, d) {
+        tooltip.transition().duration(200).style("opacity", 0);
+      });
 
     // draw dots
     g.selectAll(".market-dot")
-        .data(verticalData.marketData)
-        .enter()
-        .append("circle")
-        .attr("cx", d => xScale(d.value))
-        .attr("cy", d => yScale(d.method) + yScale.bandwidth()/2)
-        .attr("r", 5)
-        .attr("fill", darkOrange)
-        .attr("stroke", lightNeonGreen)
-        .attr("stroke-width", 1)
+      .data(verticalData.marketData)
+      .enter()
+      .append("circle")
+      .attr("cx", (d) => xScale(d.value))
+      .attr("cy", (d) => yScale(d.method) + yScale.bandwidth() / 2)
+      .attr("r", 5)
+      .attr("fill", darkOrange)
+      .attr("stroke", lightNeonGreen)
+      .attr("stroke-width", 1)
+      .on("mouseover", function (e, d) {
+        tooltip.transition().duration(200).style("opacity", 1);
+          tooltip
+            .html(
+              `<div><strong style="color: ${darkOrange}">Market Average:</strong> ${d.value.toFixed(0)}</div>`
+            )
+            .style("left", e.pageX + 10 + "px")
+            .style("top", e.pageY - 10 + "px");
+      })
+      .on("mouseout", function (event, d) {
+        tooltip.transition().duration(200).style("opacity", 0);
+      });
 
     //draw X axis
     g.append("g")
@@ -126,15 +183,17 @@ function createBarChart(verticalData, index, container) {
         .text(verticalData.vertical)
         .style("font-size", "14px")
         .style("font-weight", "bold")
+
+      
 }
 
 function getResponsiveTickCount() {
   const screenWidth = window.innerWidth;
 
   if (screenWidth < 480) {
-    return 3; // Very few ticks on mobile phones
+    return 3;
   } else {
-    return 5; // Full ticks on large screens
+    return 5;
   }
   
 }
