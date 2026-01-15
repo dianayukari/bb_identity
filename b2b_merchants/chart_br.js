@@ -9,8 +9,7 @@ const margin = { top: 10, right: 20, bottom: 20, left: 110 };
 
 const tooltip = d3.select(".tooltip")
 
-let width =
-  Math.min(container_br.node().getBoundingClientRect().width, 1200) || 400;
+let width = Math.min(container_br.node().getBoundingClientRect().width, 1200) || 400;
 let height = 200;
 
 let boundedWidth = width - margin.left - margin.right;
