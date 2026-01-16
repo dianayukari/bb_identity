@@ -8,10 +8,10 @@ let circlePackData = [];
 let currentScreen = 0;
 let data;
 
-const width = window.innerWidth * 0.8;
-const height = window.innerHeight * 0.8;
+const width = window.innerWidth;
+const height = window.innerHeight;
 
-const margin = { top: 40, right: 40, bottom: 40, left: 40 };
+const margin = { top: 0, right: 20, bottom: 40, left: 20 };
 
 let boundedWidth = width - margin.left - margin.right;
 let boundedHeight = height - margin.top - margin.bottom;
@@ -85,8 +85,13 @@ function createCirclePack(screenData) {
         .attr("width", width)
         .attr("height", height);
 
+    const g = svg.append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    const tooltip = d3.select(".tooltip")
+
     const pack = d3.pack()
-        .size([width, height])
+        .size([boundedWidth, boundedHeight])
         .padding(5)
 
     const root = d3.hierarchy(screenData.data)
@@ -100,7 +105,7 @@ function createCirclePack(screenData) {
        .scaleOrdinal(["#C599FF", "#BA5E00", "#9C50FF", "#FFC78C", "#FF8200"])
        .domain(allCategories);
 
-    const node = svg.selectAll(".node")
+    const node = g.selectAll(".node")
         .data(root.descendants().filter(d => d.depth > 0))
         .enter()
         .append("g")
@@ -108,26 +113,49 @@ function createCirclePack(screenData) {
         .attr("transform", d => `translate(${d.x}, ${d.y})`)
 
     //draw circles
-    node.append("circle")
-        .attr("r", (d) => d.r)
-        .style("fill", (d) => {
-            if (d.depth === 1) {
-                return lightNeonGreen;
-            } else {
-                return colorScale(d.data.name);
-            }
-        })
-        .style("stroke", (d) => {
-            if (d.depth === 1) {
-                return chartLight;
-            } else {
-                return "none";
-            }
-        });
+    node
+      .append("circle")
+      .attr("r", (d) => d.r)
+      .style("fill", (d) => {
+        if (d.depth === 1) {
+          return lightNeonGreen;
+        } else {
+          return colorScale(d.data.name);
+        }
+      })
+      .style("stroke", (d) => {
+        if (d.depth === 1) {
+          return chartLight;
+        } else {
+          return "none";
+        }
+      })
+      .on("mouseover", function (event, d) {
+        let tooltipContent;
+        if (d.depth === 1) {
+            return
+        } else {
+            const volume = d.value.toLocaleString();
+            const country = d.parent.data.name;
+            tooltipContent = `
+            <strong>${d.data.name} in ${country}</strong><br/>
+            ${volume}`;
+        }
+
+        tooltip.html(tooltipContent).style("opacity", 1);
+      })
+      .on("mousemove", function (event) {
+        tooltip
+          .style("top", event.pageY - 10 + "px")
+          .style("left", event.pageX + 10 + "px");
+      })
+      .on("mouseout", function () {
+        tooltip.style("opacity", 0);
+      });
 
     //TEXT
     if (root.descendants().filter((d) => d.depth === 1).length > 0) {
-      createCountryLabels(svg, root.descendants().filter((d) => d.depth === 1)
+      createCountryLabels(g, root.descendants().filter((d) => d.depth === 1)
       );
     }
 
