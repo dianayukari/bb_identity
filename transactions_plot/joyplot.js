@@ -16,7 +16,7 @@ const svg = d3.select("#joyplot");
 const container = d3.select(".container");
 const margin = {top: 160, right: 40, bottom: 40, left: 130};
 
-let width = Math.min(container.node().getBoundingClientRect().width, 1200) || 600;
+let width = window.innerWidth;
 let height = 800;
 let currentVar = "transactions";
 
