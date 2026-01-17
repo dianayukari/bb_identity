@@ -56,64 +56,61 @@ function initChart() {
 }
 
 function drawList() {
-    const countries = [...new Set(volume_data.map((d) => d.country))];
-    const listContainer = d3.select(".list");
+  const countries = [...new Set(volume_data.map((d) => d.country))];
+  const listContainer = d3.select('.list');
 
-    const countryBtns = listContainer
-        .selectAll(".country-btn")
-        .data(countries)
-        .enter()
-        .append("button")
-        .attr("class", "country-btn")
-        .text((d) => d);
-    
-    const dropdown = d3.select(".country-dropdown")
+  const countryBtns = listContainer
+    .selectAll('.country-btn')
+    .data(countries)
+    .enter()
+    .append('button')
+    .attr('class', 'country-btn')
+    .text((d) => d);
 
-    dropdown.selectAll("option.country-option")
-        .data(countries)
-        .enter().append("option")
-        .attr("class", "country-option")
-        .attr("value", d => d)
-        .text(d => d)
+  const dropdown = d3.select('.country-dropdown');
 
-    dropdown.on("change", function() {
-        selectedCountry = this.value;
-        if(selectedCountry) {
-            handleCountrySelection(selectedCountry);
-        }
-    })
+  dropdown
+    .selectAll('option.country-option')
+    .data(countries)
+    .enter()
+    .append('option')
+    .attr('class', 'country-option')
+    .attr('value', (d) => d)
+    .text((d) => d);
 
-    countryBtns.on("click", function (e, d) {
-        selectedCountry = d;
+  dropdown.on('change', function () {
+    selectedCountry = this.value;
+    if (selectedCountry) {
+      handleCountrySelection(selectedCountry);
+    }
+  });
 
-        countryBtns.classed("selected", false);
-        d3.select(this).classed("selected", true);
+  countryBtns.on('click', function (e, d) {
+    selectedCountry = d;
 
-        d3.select("#volume-chart").selectAll("*").remove()
+    countryBtns.classed('selected', false);
+    d3.select(this).classed('selected', true);
 
-        drawVolumeChart(selectedCountry);
-        drawShareChartLine(selectedCountry);
-    });
+    updateVolumeCircles(selectedCountry);
+    drawShareChartLine(selectedCountry);
+  });
 
-    d3.select(countryBtns.nodes()[0]).dispatch("click");
-    dropdown.property("value", "Brazil");
+  d3.select(countryBtns.nodes()[0]).dispatch('click');
+  dropdown.property('value', 'Brazil');
 }
 
 function handleCountrySelection(selectedCountry) {
-    d3.select("#volume-chart").selectAll("*").remove();
-    drawVolumeChart(selectedCountry);
-    drawShareChartLine(selectedCountry);
+  d3.select('#volume-chart').selectAll('*').remove();
+  drawVolumeChart(selectedCountry);
+  drawShareChartLine(selectedCountry);
 }
 
 function drawVolumeChart(selectedCountry) {
   const countryData = volume_data.filter((d) => d.country === selectedCountry);
 
-  const svg = d3.select("#volume-chart")
-    .attr("width", width)
-    .attr("height", heightVol);
+  const svg = d3.select('#volume-chart').attr('width', width).attr('height', heightVol);
 
-  const g = svg.append("g")
-    .attr("transform", `translate(${marginVol.left}, ${marginVol.top})`);
+  const g = svg.append('g').attr('transform', `translate(${marginVol.left}, ${marginVol.top})`);
 
   //main cirle params
   let radius;
@@ -129,18 +126,21 @@ function drawVolumeChart(selectedCountry) {
 
   //scales
   const years = countryData.map((d) => d.year).sort();
-  const angleScale = d3.scaleTime()
+  const angleScale = d3
+    .scaleTime()
     .domain([parseYear(2021), parseYear(2028)])
     .range([0, 2 * Math.PI - (2 * Math.PI) / years.length]);
 
-  const circlesRadiusScale = d3.scaleSqrt()
+  const circlesRadiusScale = d3
+    .scaleSqrt()
     .domain(d3.extent(countryData, (d) => d.value))
     .range([4, 16]);
 
   const firstYear = Math.min(...years);
   const lastYear = Math.max(...years);
 
-  const arc = d3.arc()
+  const arc = d3
+    .arc()
     .innerRadius(radius)
     .outerRadius(radius)
     .startAngle(angleScale(firstYear))
@@ -160,9 +160,10 @@ function drawVolumeChart(selectedCountry) {
   const arrowSide2X = arrowTipX - 6;
   const arrowSide2Y = arrowTipY + 4;
 
-  const centerArrow = g.append("g")
-    .attr("class", "center-arrow")
-    .attr("transform", `translate(${centerX + 5}, ${centerY}) rotate(-90)`);
+  const centerArrow = g
+    .append('g')
+    .attr('class', 'center-arrow')
+    .attr('transform', `translate(${centerX + 5}, ${centerY}) rotate(-90)`);
 
   //arrow circular path
   const startX = arrowRadius * Math.cos(startAngle);
@@ -180,22 +181,23 @@ function drawVolumeChart(selectedCountry) {
     L ${arrowSide1X} ${arrowSide1Y}
   `;
 
-  centerArrow.append("path")
-    .attr("d", continuousPath)
-    .attr("fill", "none")
-    .attr("stroke", chartLight)
-    .attr("stroke-width", 1)
-    .attr("stroke-linecap", "round")
-    .attr("stroke-linejoin", "round")
-    .attr("opacity", 0.7);
+  centerArrow
+    .append('path')
+    .attr('d', continuousPath)
+    .attr('fill', 'none')
+    .attr('stroke', chartLight)
+    .attr('stroke-width', 1)
+    .attr('stroke-linecap', 'round')
+    .attr('stroke-linejoin', 'round')
+    .attr('opacity', 0.7);
 
   //draw axis circle
-  g.append("path")
-    .attr("d", arc)
-    .attr("transform", `translate(${centerX}, ${centerY})`)
-    .attr("fill", "none")
-    .attr("stroke", chartLight)
-    .attr("stroke-width", 1);
+  g.append('path')
+    .attr('d', arc)
+    .attr('transform', `translate(${centerX}, ${centerY})`)
+    .attr('fill', 'none')
+    .attr('stroke', chartLight)
+    .attr('stroke-width', 1);
 
   //draw dots
   g.selectAll('.circle')
@@ -225,33 +227,49 @@ function drawVolumeChart(selectedCountry) {
     });
 
   //year labels
-  g.selectAll(".year-label")
+  g.selectAll('.year-label')
     .data(countryData)
     .enter()
-    .append("text")
-    .attr("class", "year-label")
-    .attr("x", (d) => {
+    .append('text')
+    .attr('class', 'year-label')
+    .attr('x', (d) => {
       const angle = angleScale(d.year);
       const labelRadius = radius + 35;
       return centerX + labelRadius * Math.cos(angle - Math.PI / 2);
     })
-    .attr("y", (d) => {
+    .attr('y', (d) => {
       const angle = angleScale(d.year);
       const labelRadius = radius + 35;
       return centerY + labelRadius * Math.sin(angle - Math.PI / 2);
     })
     .text((d) => d.year.getFullYear())
-    .attr("text-anchor", "middle")
-    .attr("dy", "0.35em")
-    .style("font-size", "13px")
-    .style("fill", chartMedium);
+    .attr('text-anchor', 'middle')
+    .attr('dy', '0.35em')
+    .style('font-size', '13px')
+    .style('fill', chartMedium);
 
-  g.append("text")
-    .attr("x", 0)
-    .attr("y", -40)
-    .style("font-size", "16px")
-    .style("font-weight", "bold")
-    .text("Volume (USD billion)");
+  g.append('text')
+    .attr('x', 0)
+    .attr('y', -40)
+    .style('font-size', '16px')
+    .style('font-weight', 'bold')
+    .text('Volume (USD billion)');
+}
+
+function updateVolumeCircles(selectedCountry) {
+  const countryData = volume_data.filter((d) => d.country === selectedCountry);
+  const g = d3.select('#volume-chart g');
+
+  const circlesRadiusScale = d3
+    .scaleSqrt()
+    .domain(d3.extent(countryData, (d) => d.value))
+    .range([4, 16]);
+
+  g.selectAll('.circle')
+    .data(countryData)
+    .transition()
+    .duration(800)
+    .attr('r', (d) => circlesRadiusScale(d.value));
 }
 
 function drawShareChart() {
@@ -277,12 +295,9 @@ function drawShareChart() {
     .select('.domain')
     .remove();
 
-  g.selectAll('.xaxis .tick line')
-    .style('stroke', chartLight);
+  g.selectAll('.xaxis .tick line').style('stroke', chartLight);
 
-  g.selectAll(".xaxis .tick text")
-    .style("font-size", "13px")
-    .style("fill", chartMedium);
+  g.selectAll('.xaxis .tick text').style('font-size', '13px').style('fill', chartMedium);
 
   // draw y axis
   g.append('g')
@@ -292,12 +307,9 @@ function drawShareChart() {
     .select('.domain')
     .remove();
 
-  g.selectAll('.yaxis .tick line')
-    .style('stroke', chartLight);
+  g.selectAll('.yaxis .tick line').style('stroke', chartLight);
 
-  g.selectAll(".yaxis .tick text")
-    .style("font-size", "13px")
-    .style("fill", chartMedium);
+  g.selectAll('.yaxis .tick text').style('font-size', '13px').style('fill', chartMedium);
 
   //draw circles for all countries
   g.selectAll('.share-dot')
@@ -313,10 +325,12 @@ function drawShareChart() {
     .on('mouseover', function (event, d) {
       tooltip.transition().duration(200).style('opacity', 1);
       tooltip
-        .html(`<div>
+        .html(
+          `<div>
           <strong style="color: ${d.country === selectedCountry ? aqua : chartMedium}">
           ${d.country}:</strong> 
-          ${d.value.toFixed(0)}%</div>`)
+          ${d.value.toFixed(0)}%</div>`
+        )
         .style('left', event.pageX + 10 + 'px')
         .style('top', event.pageY - 10 + 'px');
     })
@@ -336,27 +350,37 @@ function drawShareChart() {
 }
 
 function drawShareChartLine(selectedCountry) {
-    const g = d3.select("#share-chart g");
-    const lineGroup = d3.select(".country-line-group")
+  const g = d3.select('#share-chart g');
+  const lineGroup = d3.select('.country-line-group');
 
-    lineGroup.selectAll("*").remove();
+  lineGroup.selectAll('*').remove();
 
-    const countryData = share_data.filter(d => d.country === selectedCountry);
+  const countryData = share_data.filter((d) => d.country === selectedCountry);
 
-    const line = d3.line()
-        .x(d => xScale(d.year))
-        .y(d => yScale(d.value))
-        .curve(d3.curveMonotoneX);
+  const line = d3
+    .line()
+    .x((d) => xScale(d.year))
+    .y((d) => yScale(d.value))
+    .curve(d3.curveMonotoneX);
 
-    lineGroup
-      .append("path")
-      .datum(countryData)
-      .attr("class", "country-line")
-      .attr("d", line)
-      .attr("fill", "none")
-      .attr("stroke", aqua)
-      .attr("stroke-width", 3)
+  const path = lineGroup
+    .append('path')
+    .datum(countryData)
+    .attr('class', 'country-line')
+    .attr('d', line)
+    .attr('fill', 'none')
+    .attr('stroke', aqua)
+    .attr('stroke-width', 3);
 
-    g.selectAll(".share-dot")
-      .attr("fill", (d) => (d.country === selectedCountry ? aqua : chartMedium));
+  const totalLength = path.node().getTotalLength();
+
+  path
+    .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+    .attr('stroke-dashoffset', totalLength)
+    .transition()
+    .duration(300)
+    .ease(d3.easeLinear)
+    .attr('stroke-dashoffset', 0);
+
+  g.selectAll('.share-dot').attr('fill', (d) => (d.country === selectedCountry ? aqua : chartMedium));
 }
