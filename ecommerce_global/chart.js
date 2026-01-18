@@ -295,9 +295,12 @@ function drawShareChart() {
     .select('.domain')
     .remove();
 
-  g.selectAll('.xaxis .tick line').style('stroke', chartLight);
+  g.selectAll('.xaxis .tick line')
+    .style('stroke', chartLight);
 
-  g.selectAll('.xaxis .tick text').style('font-size', '13px').style('fill', chartMedium);
+  g.selectAll('.xaxis .tick text')
+    .style('font-size', '13px')
+    .style('fill', chartMedium);
 
   // draw y axis
   g.append('g')
@@ -307,9 +310,12 @@ function drawShareChart() {
     .select('.domain')
     .remove();
 
-  g.selectAll('.yaxis .tick line').style('stroke', chartLight);
+  g.selectAll('.yaxis .tick line')
+    .style('stroke', chartLight);
 
-  g.selectAll('.yaxis .tick text').style('font-size', '13px').style('fill', chartMedium);
+  g.selectAll('.yaxis .tick text')
+    .style('font-size', '13px')
+    .style('fill', chartMedium);
 
   //draw circles for all countries
   g.selectAll('.share-dot')
