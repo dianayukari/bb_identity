@@ -1,25 +1,89 @@
-let aqua = "#4BDBBA";
-let purple100 = "#9C50FF";
-let chartLight = "#E0E0E0";
-let chartMedium = "#808080";
-let lightNeonGreen = "#F6FAE6";
+const COLORS = {
+  aqua: "#4BDBBA",
+  purple100: "#9C50FF",
+  chartLight: "#E0E0E0",
+  chartMedium: "#808080",
+  lightNeonGreen: "#F6FAE6",
+};
+
+const CHART_CONFIG = {
+  width: window.innerWidth,
+  height: window.innerHeight * 0.6,
+  margin: { top: 0, right: 20, bottom: 20, left: 20 },
+};
+
+const RESPONSIVE_CONFIG = {
+  mobileBreakpoint: 768,
+  circlePadding: 5,
+  minLabelRadius: 20,
+  maxCategoryFontSize: 13,
+  baseFontSizes: {
+    mobile: "10px",
+    desktop: "11px",
+  },
+  actualFontSizes: {
+    mobile: "12px",
+    desktop: "14px",
+  },
+};
+
+const POSITIONING = {
+  labelMinDistance: {
+    mobile: 3,
+    desktop: 5,
+  },
+  overlapTolerance: {
+    mobile: 0.4,
+    desktop: 0.6,
+  },
+  margins: {
+    mobile: 5,
+    desktop: 10,
+  },
+};
+
+let boundedWidth = CHART_CONFIG.width - CHART_CONFIG.margin.left - CHART_CONFIG.margin.right;
+let boundedHeight = CHART_CONFIG.height - CHART_CONFIG.margin.top - CHART_CONFIG.margin.bottom;
 
 let circlePackData = [];
 let currentScreen = 0;
 let data;
+let colorScale;
 
-const width = window.innerWidth;
-const height = window.innerHeight * 0.6;
+const tooltip = d3.select("#tooltip");
 
-const margin = { top: 0, right: 20, bottom: 20, left: 20 };
+// Helper functions for responsive design
+function isMobileViewport() {
+  return window.innerWidth < RESPONSIVE_CONFIG.mobileBreakpoint;
+}
 
-let boundedWidth = width - margin.left - margin.right;
-let boundedHeight = height - margin.top - margin.bottom;
+function shouldSplitText(text, isMobile) {
+  const words = text.split(/\s+/);
+  return isMobile && words.length > 1 && text.length > 14;
+}
 
-const tooltip = d3.select("#tooltip")
+function estimateTextDimensions(text, willSplit) {
+  const baseHeight = 16;
+  if (willSplit) {
+    const wordCount = text.split(/\s+/).length;
+    return { height: baseHeight * wordCount };
+  }
+  return { height: baseHeight };
+}
 
-let colorScale
+// Circle styling helper functions
+function getCircleFillColor(d) {
+  if (d.depth === 1) {
+    return COLORS.lightNeonGreen;
+  }
+  return colorScale(d.data.name);
+}
 
+function getCircleStrokeColor(d) {
+  return d.depth === 1 ? COLORS.chartLight : "none";
+}
+
+// Load and parse CSV data
 d3.csv("market_vol.csv", (d) => ({
   country: d.country,
   category: d.category,
@@ -31,17 +95,25 @@ d3.csv("market_vol.csv", (d) => ({
   initChart();
 });
 
+
+/**
+ * Initializes chart, set up event handlers and prepares data
+ */
+
 function initChart() {
   setupNavigationEvents();
   prepareCirclePackData();
   showScreen(0);
 
-  d3.select("body")
-    .on("click.tooltip", function () {
-      hideTooltip();
-    });
+  d3.select("body").on("click.tooltip", function () {
+    hideTooltip();
+  });
 }
 
+/**
+ * Transforms raw CSV data into hierarchical structure for circle packing
+ * Creates separate datasets for each class value
+ */
 function prepareCirclePackData() {
   const classValues = [...new Set(data.map((d) => d.class))];
 
@@ -72,42 +144,53 @@ function prepareCirclePackData() {
   });
 }
 
+/**
+ * Displays a specific screen/class of data
+ */
 function showScreen(screenIndex) {
   currentScreen = screenIndex;
-
   updateNavigation();
 
-  d3.select("#chart-area")
-    .selectAll("*")
-    .remove();
+  // Clear previous chart content
+  d3.select("#chart-area").selectAll("*").remove();
 
+  // Render new screen data
   createCirclePack(circlePackData[screenIndex]);
 }
 
+/**
+ * Creates and renders a circle pack visualization for the given screen data
+ */
 function createCirclePack(screenData) {
-  const svg = d3.select("#chart-area")
+  const svg = d3
+    .select("#chart-area")
     .append("svg")
-    .attr("width", width)
-    .attr("height", height);
+    .attr("width", CHART_CONFIG.width)
+    .attr("height", CHART_CONFIG.height);
 
-  const g = svg.append("g")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`);
+  const g = svg
+    .append("g")
+    .attr("transform", `translate(${CHART_CONFIG.margin.left}, ${CHART_CONFIG.margin.top})`);
 
   const pack = d3.pack()
-    .size([boundedWidth, boundedHeight]).padding(5);
+    .size([boundedWidth, boundedHeight])
+    .padding(RESPONSIVE_CONFIG.circlePadding);
 
-  const root = d3.hierarchy(screenData.data)
+  const root = d3
+    .hierarchy(screenData.data)
     .sum((d) => d.value)
     .sort((a, b) => b.value - a.value);
 
   pack(root);
 
   const allCategories = [...new Set(data.map((d) => d.category))];
-  colorScale = d3.scaleOrdinal()
+  colorScale = d3
+    .scaleOrdinal()
     .domain(allCategories)
     .range(["#C599FF", "#BA5E00", "#9C50FF", "#FFC78C", "#FF8200"]);
 
-  const node = g.selectAll(".node")
+  const node = g
+    .selectAll(".node")
     .data(root.descendants().filter((d) => d.depth > 0))
     .enter()
     .append("g")
@@ -115,30 +198,18 @@ function createCirclePack(screenData) {
     .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
 
   //draw circles
-  node.append("circle")
+  node
+    .append("circle")
     .attr("r", (d) => d.r)
-    .style("fill", (d) => {
-      if (d.depth === 1) {
-        return lightNeonGreen;
-      } else {
-        return colorScale(d.data.name);
-      }
-    })
-    .style("stroke", (d) => {
-      if (d.depth === 1) {
-        return chartLight;
-      } else {
-        return "none";
-      }
-    })
+    .style("fill", getCircleFillColor)
+    .style("stroke", getCircleStrokeColor)
     .on("mouseover", function (event, d) {
+      // Only show tooltip for leaf nodes (categories)
       if (d.depth === 1) return;
-
       showTooltip(event, d);
     })
     .on("mousemove", function (event, d) {
       if (d.depth === 1) return;
-
       positionTooltip(event);
     })
     .on("mouseout", function () {
@@ -149,13 +220,9 @@ function createCirclePack(screenData) {
 
       event.preventDefault();
       event.stopPropagation();
-
-      if (tooltip.style("opacity") === "1") {
-        hideTooltip();
-      } else {
-        showTooltip(event, d);
-        positionTooltip(event);
-      }
+      showTooltip(event, d);
+      positionTooltip(event);
+      
     });
 
   //TEXT
@@ -166,20 +233,22 @@ function createCirclePack(screenData) {
     );
   }
 
-  d3.select(".screen-title")
-    .text(screenData.title);
+  d3.select(".screen-title").text(screenData.title);
 
   const categoryNodes = node.filter((d) => d.depth > 1);
 
-  const categoriesLabels = categoryNodes.append("text")
+  // Add category labels inside circles
+  const categoriesLabels = categoryNodes
+    .append("text")
     .attr("dy", "0.3em")
     .attr("x", 0)
     .style("text-anchor", "middle")
-    .style("font-size", (d) => Math.min(d.r / 2, 13) + "px")
+    .style("font-size", (d) => Math.min(d.r / 2, RESPONSIVE_CONFIG.maxCategoryFontSize) + "px")
     .style("pointer-events", "none");
 
   categoriesLabels.each(function (d) {
-    if (d.r > 20) {
+    // Only add labels to circles large enough to read
+    if (d.r > RESPONSIVE_CONFIG.minLabelRadius) {
       const textElement = d3.select(this);
       const name = d.data.name;
 
@@ -188,7 +257,8 @@ function createCirclePack(screenData) {
         const words = name.split(/\s+/);
 
         words.forEach((word, i) => {
-          textElement.append("tspan")
+          textElement
+            .append("tspan")
             .attr("x", 0)
             .attr("dy", i === 0 ? "-0.1em" : "1.1em")
             .text(word);
@@ -200,42 +270,46 @@ function createCirclePack(screenData) {
   });
 }
 
+/**
+ * Creates and positions country labels around circle nodes
+ */
 function createCountryLabels(svg, countryNodes) {
-  const isMobile = window.innerWidth < 768;
-  const baseFontSize = isMobile ? "10px" : "11px";
-  const actualFontSize = isMobile ? "12px" : "14px";
+  const isMobile = isMobileViewport();
+  const baseFontSize = isMobile ? RESPONSIVE_CONFIG.baseFontSizes.mobile : RESPONSIVE_CONFIG.baseFontSizes.desktop;
+  const actualFontSize = isMobile ? RESPONSIVE_CONFIG.actualFontSizes.mobile : RESPONSIVE_CONFIG.actualFontSizes.desktop;
 
   //temp labels to get bbox
-  const tempText = svg.append("text")
+  const tempText = svg
+    .append("text")
     .style("font-size", baseFontSize)
     .style("font-weight", "bold")
     .style("visibility", "hidden");
 
   const labelData = countryNodes.map((d) => {
     let displayText = d.data.name;
-    let estimatedHeight = 16;
-    let willSplit = false;
-
+    const willSplit = shouldSplitText(displayText, isMobile);
+    const dimensions = estimateTextDimensions(displayText, willSplit);
+    
     // For mobile, check if we should split long multi-word names
-    if (isMobile) {
-      const words = displayText.split(/\s+/);
-      // Only split if it's multi-word AND longer than 14 characters
-      if (words.length > 1 && displayText.length > 14) {
-        willSplit = true;
-        estimatedHeight = 16 * words.length;
-        displayText = displayText;
-      }
+    if (willSplit) {
+      displayText = displayText; // Keep original text for splitting later
     }
 
-    tempText.text(willSplit ? displayText.split(/\s+/)[0] : displayText); // Use first word for width if splitting
+    // Use first word for width measurement if splitting
+    tempText.text(willSplit ? displayText.split(/\s+/)[0] : displayText);
     const bbox = tempText.node().getBBox();
 
     const adjustedBbox = {
       width: bbox.width,
-      height: estimatedHeight,
+      height: dimensions.height,
     };
 
-    const optimalPosition = findOptimalPosition(d, countryNodes, adjustedBbox, isMobile);
+    const optimalPosition = findOptimalPosition(
+      d,
+      countryNodes,
+      adjustedBbox,
+      isMobile,
+    );
     return {
       node: d,
       text: displayText,
@@ -251,7 +325,8 @@ function createCountryLabels(svg, countryNodes) {
   tempText.remove(); //remove temp labels
 
   // draw actual labels
-  svg.selectAll(".country-label")
+  svg
+    .selectAll(".country-label")
     .data(labelData)
     .enter()
     .append("text")
@@ -270,7 +345,8 @@ function createCountryLabels(svg, countryNodes) {
         const words = d.originalText.split(/\s+/);
 
         words.forEach((word, i) => {
-          textElement.append("tspan")
+          textElement
+            .append("tspan")
             .attr("x", d.x)
             .attr("dy", i === 0 ? "0em" : "1.1em")
             .text(word);
@@ -281,11 +357,21 @@ function createCountryLabels(svg, countryNodes) {
     });
 }
 
+/**
+ * Finds optimal position for country labels around circle nodes
+ * @param {Object} targetNode - The node to position label for
+ * @param {Array} allNodes - All country nodes for collision detection
+ * @param {Object} textBbox - Text bounding box dimensions
+ * @param {boolean} isMobile - Whether in mobile viewport
+ * @returns {Object} Position with x, y coordinates
+ */
 function findOptimalPosition(targetNode, allNodes, textBbox, isMobile) {
-  const minDistance = targetNode.r + (isMobile ? 3 : 5);
+  const minDistance = targetNode.r + (isMobile ? POSITIONING.labelMinDistance.mobile : POSITIONING.labelMinDistance.desktop);
+  
+  // Try positions in order of preference (left first for readability)
   const angles = isMobile
-    ? [270, 90, 180, 0, 225, 135, 315, 45] 
-    : [180, 225, 135, 270, 315, 45, 90, 0];
+    ? [270, 90, 180, 0, 225, 135, 315, 45] // Mobile: prefer top/bottom
+    : [180, 225, 135, 270, 315, 45, 90, 0]; // Desktop: prefer left
 
   for (let angle of angles) {
     const radian = (angle * Math.PI) / 180;
@@ -294,21 +380,33 @@ function findOptimalPosition(targetNode, allNodes, textBbox, isMobile) {
     let testX = targetNode.x + Math.cos(radian) * distance;
     let testY = targetNode.y + Math.sin(radian) * distance;
 
+    // Adjust text alignment for left-side positions
     if (angle > 90 && angle < 270) {
       testX = testX - textBbox.width; // Right-align text for left positions
     }
 
+    // Return first valid position found
     if (isValidPosition(testX, testY, textBbox, targetNode, allNodes)) {
       return { x: testX, y: testY };
     }
   }
 
-  const fallbackX = isMobile 
-    ? Math.min(Math.max(10, targetNode.x - textBbox.width/2), width - textBbox.width - 10)
-    : Math.max(textBbox.width + 10, targetNode.x - targetNode.r - textBbox.width - 20);
-    
+  // Fallback positioning when no optimal position found
+  const fallbackX = isMobile
+    ? Math.min(
+        Math.max(10, targetNode.x - textBbox.width / 2),
+        CHART_CONFIG.width - textBbox.width - 10,
+      )
+    : Math.max(
+        textBbox.width + 10,
+        targetNode.x - targetNode.r - textBbox.width - 20,
+      );
+
   const fallbackY = isMobile
-    ? Math.min(Math.max(textBbox.height + 10, targetNode.y - targetNode.r - 15), height - 10)
+    ? Math.min(
+        Math.max(textBbox.height + 10, targetNode.y - targetNode.r - 15),
+        CHART_CONFIG.height - 10,
+      )
     : targetNode.y;
 
   return {
@@ -317,20 +415,24 @@ function findOptimalPosition(targetNode, allNodes, textBbox, isMobile) {
   };
 }
 
-function isValidPosition(x, y, textBbox, targetNode, allNodes, isMobile) {
+/**
+ * Validates if a label position is within bounds and doesn't overlap with circles
+ */
+function isValidPosition(x, y, textBbox, targetNode, allNodes) {
+  const isMobile = isMobileViewport();
+  const margin = isMobile ? POSITIONING.margins.mobile : POSITIONING.margins.desktop;
 
-  const margin = isMobile ? 5 : 10;
-
+  // Check if position is within viewport bounds
   if (
     x < margin ||
-    x + textBbox.width > width - 10 ||
+    x + textBbox.width > CHART_CONFIG.width - 10 ||
     y - textBbox.height < 10 ||
-    y > height - 10
+    y > CHART_CONFIG.height - 10
   ) {
     return false;
   }
 
-  const overlapTolerance = isMobile ? 0.4 : 0.6;
+  const overlapTolerance = isMobile ? POSITIONING.overlapTolerance.mobile : POSITIONING.overlapTolerance.desktop;
 
   for (let node of allNodes) {
     const distanceFromCenter = Math.sqrt(
@@ -349,6 +451,9 @@ function isValidPosition(x, y, textBbox, targetNode, allNodes, isMobile) {
   return true;
 }
 
+/**
+ * Sets up event handlers for navigation controls
+ */
 function setupNavigationEvents() {
   d3.select("#prev-btn").on("click", () => {
     if (currentScreen > 0) {
@@ -370,23 +475,25 @@ function setupNavigationEvents() {
   });
 }
 
+/**
+ * Updates navigation button states based on current screen
+ */
 function updateNavigation() {
-  d3.select("#prev-btn")
-    .property("disabled", currentScreen === 0);
+  d3.select("#prev-btn").property("disabled", currentScreen === 0);
 
-  d3.select("#next-btn")
-    .property(
-      "disabled",
-      currentScreen === circlePackData.length - 1,
-    );
+  d3.select("#next-btn").property(
+    "disabled",
+    currentScreen === circlePackData.length - 1,
+  );
 
-  d3.selectAll(".dot")
-    .classed("active", false);
+  d3.selectAll(".dot").classed("active", false);
 
-  d3.select(`.dot:nth-child(${currentScreen + 1})`)
-    .classed("active", true);
+  d3.select(`.dot:nth-child(${currentScreen + 1})`).classed("active", true);
 }
 
+/**
+ * Displays tooltip with category information
+ */
 function showTooltip(event, d) {
   const volume = d.value.toLocaleString();
   const country = d.parent.data.name;
@@ -395,9 +502,8 @@ function showTooltip(event, d) {
     <strong> in ${country}</strong><br/>
     ${volume}`;
 
-  tooltip.html(tooltipContent)
-    .style("opacity", 1);
-    
+  tooltip.html(tooltipContent).style("opacity", 1);
+
   positionTooltip(event);
 }
 
@@ -405,6 +511,9 @@ function hideTooltip() {
   tooltip.style("opacity", 0);
 }
 
+/**
+ * Positions tooltip relative to mouse cursor with collision detection
+ */
 function positionTooltip(event) {
   const tooltipNode = tooltip.node();
   const tooltipRect = tooltipNode.getBoundingClientRect();
@@ -428,7 +537,5 @@ function positionTooltip(event) {
     top = event.pageY + 20;
   }
 
-  tooltip
-    .style("left", left + "px")
-    .style("top", top + "px");
+  tooltip.style("left", left + "px").style("top", top + "px");
 }
