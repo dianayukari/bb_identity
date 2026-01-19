@@ -1,20 +1,37 @@
-let aqua = "#4BDBBA";
-let purple100 = "#9C50FF";
-let chartLight = "#E0E0E0";
-let chartMedium = "#808080";
+// Color palette configuration
+const COLORS = {
+  aqua: "#4BDBBA",
+  purple100: "#9C50FF",
+  chartLight: "#E0E0E0",
+  chartMedium: "#808080"
+};
+
+// Chart configuration
+const CHART_CONFIG = {
+  widthRatio: 0.9,
+  height: 400,
+  margin: { top: 0, right: 10, bottom: 20, left: 120 },
+  circleRadius: {
+    default: 4,
+    highlighted: 6
+  },
+  defaultOpacity: 0.6
+};
 
 let data;
+let selectedCountry = null;
 
-const width = window.innerWidth * 0.9;
-const height = 400;
-
-const margin = { top: 0, right: 10, bottom: 20, left: 120 };
+// Chart dimensions
+const width = window.innerWidth * CHART_CONFIG.widthRatio;
+const height = CHART_CONFIG.height;
+const margin = CHART_CONFIG.margin;
 
 let boundedWidth = width - margin.left - margin.right;
 let boundedHeight = height - margin.top - margin.bottom;
 
 const tooltip = d3.select(".tooltip");
 
+// Load and parse CSV data
 d3.csv("ecomm_verticals.csv", (d) => ({
   country: d.country,
   category: d.category,
@@ -26,6 +43,9 @@ d3.csv("ecomm_verticals.csv", (d) => ({
   initChart();
 });
 
+/**
+ * Initializes the ecommerce verticals beeswarm chart
+ */
 function initChart() {
   const svg = d3.select('#chart')
     .attr('width', width)
@@ -59,13 +79,13 @@ function initChart() {
     .attr("class", "xaxis")
     .attr("transform", `translate(0, ${boundedHeight})`)
     .call(d3.axisBottom(xScale))
-    .select(".domain").remove()
+    .select(".domain").remove();
 
   d3.selectAll(".xaxis .tick line")
-    .attr("stroke", chartLight)
+    .attr("stroke", COLORS.chartLight);
 
   d3.selectAll(".xaxis .tick text")
-    .attr("fill", chartMedium)
+    .attr("fill", COLORS.chartMedium)
     .style("font-size", "13px");
 
   //y axis
@@ -77,7 +97,7 @@ function initChart() {
     .select(".domain").remove();
 
   d3.selectAll(".yaxis .tick line")
-    .attr("stroke", chartLight)
+    .attr("stroke", COLORS.chartLight);
 
   d3.selectAll(".yaxis .tick text")
     .style("font-size", "13px");
@@ -88,11 +108,11 @@ function initChart() {
     .enter()
     .append('circle')
     .attr('class', d => `circle country-${d.country.replace(/\s+/g, '-')}`)
-    .attr('r', 4)
+    .attr('r', CHART_CONFIG.circleRadius.default)
     .attr('cx', d => d.x)
     .attr('cy', d => d.y)
-    .attr("fill", aqua)
-    .style("opacity", 0.6)
+    .attr("fill", COLORS.aqua)
+    .style("opacity", CHART_CONFIG.defaultOpacity);
 
   circles
     .on("mouseover", handleHighlight)
@@ -107,44 +127,59 @@ function initChart() {
   });
 }
 
+/**
+ * Resets all circles to default styling
+ */
 function resetAllCircles() {
   d3.selectAll(".circle")
-    .attr("r", 4)
-    .attr("fill", aqua)
-    .style("opacity", 0.6);
+    .attr("r", CHART_CONFIG.circleRadius.default)
+    .attr("fill", COLORS.aqua)
+    .style("opacity", CHART_CONFIG.defaultOpacity);
 }
 
+/**
+ * Hides the tooltip with smooth transition
+ */
 function hideTooltip() {
   tooltip.transition()
     .duration(300)
     .style("opacity", 0);
 }
 
+/**
+ * Handles circle highlight on hover/click
+ */
 function handleHighlight(e, d) {
   const countryName = d.country;
   const countryClass = `country-${countryName.replace(/\s+/g, '-')}`;
 
-  resetAllCircles()
+  resetAllCircles();
   showTooltip(e, d);
 
+  // Highlight all circles for this country
   d3.selectAll(`.${countryClass}`)
-    .attr("fill", purple100)
-    .attr("r", 6)
+    .attr("fill", COLORS.purple100)
+    .attr("r", CHART_CONFIG.circleRadius.highlighted)
     .style("opacity", 1);
-    
 }
 
-function handleUnhighlight(e,d) {
-  resetAllCircles()
-  hideTooltip()
+/**
+ * Handles circle unhighlight on mouseout
+ */
+function handleUnhighlight(e, d) {
+  resetAllCircles();
+  hideTooltip();
 }
 
+/**
+ * Shows tooltip with country and category data
+ */
 function showTooltip(e, d) {
   tooltip.interrupt();
 
   const countryName = d.country;
   const tooltipContent =
-    `<strong style="color: ${purple100}">${countryName}</strong><br/>
+    `<strong style="color: ${COLORS.purple100}">${countryName}</strong><br/>
       ${d.cat_split}: ${d.value.toFixed(1)}`;
 
   const tooltipWidth = 100;
@@ -166,6 +201,5 @@ function showTooltip(e, d) {
     .style("opacity", 1)
     .style("left", x + "px")
     .style("top", y + "px");
-
 }
 

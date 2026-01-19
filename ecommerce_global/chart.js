@@ -1,27 +1,40 @@
-let aqua = "#4BDBBA";
-let purple100 = "#9C50FF";
-let chartLight = "#E0E0E0";
-let chartMedium = "#808080";
+const COLORS = {
+  aqua: "#4BDBBA",
+  purple100: "#9C50FF",
+  chartLight: "#E0E0E0",
+  chartMedium: "#808080"
+};
+
+const RESPONSIVE_CONFIG = {
+  mobileBreakpoint: 480,
+  mobileWidthRatio: 0.9,
+  desktopWidthRatio: 0.7
+};
 
 let years, countries;
-let xScale, yScale
-
-const tooltip = d3.select('.tooltip');
-
-const parseYear = d3.timeParse("%Y");
-const formatBillion = d3.format(',.0f');
+let xScale, yScale;
+let volume_data, share_data;
 let selectedCountry = "Brazil";
 
-let width
+const tooltip = d3.select('.tooltip');
+const parseYear = d3.timeParse("%Y");
+const formatBillion = d3.format(',.0f');
+
+// Helper function for responsive design
+function isMobileViewport() {
+  return window.innerWidth < RESPONSIVE_CONFIG.mobileBreakpoint;
+}
+
+// Chart dimensions based on viewport
+let width;
 let marginVol, marginShare;
 
-if(window.innerWidth < 480) {
-    width = window.innerWidth*0.9;
+if (isMobileViewport()) {
+    width = window.innerWidth * RESPONSIVE_CONFIG.mobileWidthRatio;
     marginVol = { top: 60, right: 40, bottom: 40, left: 40 };
     marginShare = { top: 60, right: 15, bottom: 40, left: 40 };
-
 } else {
-    width = window.innerWidth * 0.7;
+    width = window.innerWidth * RESPONSIVE_CONFIG.desktopWidthRatio;
     marginVol = { top: 60, right: 40, bottom: 40, left: 40 };
     marginShare = { top: 60, right: 40, bottom: 40, left: 80 };
 }
@@ -35,36 +48,43 @@ let boundedHeightVol = heightVol - marginVol.top - marginVol.bottom;
 let boundedWidthShare = width - marginShare.left - marginShare.right;
 let boundedHeightShare = heightShare - marginShare.top - marginShare.bottom;
 
+// Load and parse CSV data
 d3.csv("data_global.csv", (d) => ({
   country: d.country,
   year: parseYear(d.year),
   value: +d.value*100,
   type: d.type,
 })).then((loadedData) => {
+  // Filter data by type
   volume_data = loadedData.filter((d) => d.type == "Volume (USD billion)");
   share_data = loadedData
     .filter((d) => d.type == "Share (%)")
-    .filter(d => !isNaN(d.value))
+    .filter(d => !isNaN(d.value));
   initChart();
 });
 
+/**
+ * Initializes the ecommerce global charts
+ */
 function initChart() {
   drawList();
   drawVolumeChart(selectedCountry);
   drawShareChart();
-  drawShareChartLine(selectedCountry)
+  drawShareChartLine(selectedCountry);
 
   d3.select("body").on("click.tooltip", function () {
     hideTooltip();
   });
 }
 
+/**
+ * Creates country selection buttons and dropdown
+ */
 function drawList() {
   const countries = [...new Set(volume_data.map((d) => d.country))];
   const listContainer = d3.select('.list');
 
-  const countryBtns = listContainer
-    .selectAll('.country-btn')
+  const countryBtns = listContainer.selectAll('.country-btn')
     .data(countries)
     .enter()
     .append('button')
@@ -73,8 +93,7 @@ function drawList() {
 
   const dropdown = d3.select('.country-dropdown');
 
-  dropdown
-    .selectAll('option.country-option')
+  dropdown.selectAll('option.country-option')
     .data(countries)
     .enter()
     .append('option')
@@ -103,12 +122,18 @@ function drawList() {
   dropdown.property('value', 'Brazil');
 }
 
+/**
+ * Handles country selection change from dropdown
+ */
 function handleCountrySelection(selectedCountry) {
   d3.select('#volume-chart').selectAll('*').remove();
   drawVolumeChart(selectedCountry);
   drawShareChartLine(selectedCountry);
 }
 
+/**
+ * Draws the radial volume chart for a selected country
+ */
 function drawVolumeChart(selectedCountry) {
   const countryData = volume_data.filter((d) => d.country === selectedCountry);
 
@@ -119,7 +144,7 @@ function drawVolumeChart(selectedCountry) {
   //main cirle params
   let radius;
 
-  if (window.innerWidth < 480) {
+  if (isMobileViewport()) {
     radius = Math.min(boundedWidthVol, boundedHeightVol) / 2.3;
   } else {
     radius = Math.min(boundedWidthVol, boundedHeightVol) / 2;
@@ -130,13 +155,11 @@ function drawVolumeChart(selectedCountry) {
 
   //scales
   const years = countryData.map((d) => d.year).sort();
-  const angleScale = d3
-    .scaleTime()
+  const angleScale = d3.scaleTime()
     .domain([parseYear(2021), parseYear(2028)])
     .range([0, 2 * Math.PI - (2 * Math.PI) / years.length]);
 
-  const circlesRadiusScale = d3
-    .scaleSqrt()
+  const circlesRadiusScale = d3.scaleSqrt()
     .domain(d3.extent(countryData, (d) => d.value))
     .range([4, 16]);
 
@@ -163,6 +186,7 @@ function drawVolumeChart(selectedCountry) {
   const arrowSide2X = arrowTipX - 6;
   const arrowSide2Y = arrowTipY + 4;
 
+  // Draw center arrow
   const centerArrow = g.append('g')
     .attr('class', 'center-arrow')
     .attr('transform', `translate(${centerX + 5}, ${centerY}) rotate(-90)`);
@@ -186,7 +210,7 @@ function drawVolumeChart(selectedCountry) {
   centerArrow.append('path')
     .attr('d', continuousPath)
     .attr('fill', 'none')
-    .attr('stroke', chartLight)
+    .attr('stroke', COLORS.chartLight)
     .attr('stroke-width', 1)
     .attr('stroke-linecap', 'round')
     .attr('stroke-linejoin', 'round')
@@ -197,7 +221,7 @@ function drawVolumeChart(selectedCountry) {
     .attr('d', arc)
     .attr('transform', `translate(${centerX}, ${centerY})`)
     .attr('fill', 'none')
-    .attr('stroke', chartLight)
+    .attr('stroke', COLORS.chartLight)
     .attr('stroke-width', 1);
 
   //draw dots
@@ -215,7 +239,7 @@ function drawVolumeChart(selectedCountry) {
       return centerY + radius * Math.sin(angle - Math.PI / 2);
     })
     .attr('r', (d) => circlesRadiusScale(d.value))
-    .attr('fill', purple100)
+    .attr('fill', COLORS.purple100)
     .on('mouseover', function (e, d) {
        showTooltip(e, d, true);
     })
@@ -250,7 +274,7 @@ function drawVolumeChart(selectedCountry) {
     .attr('text-anchor', 'middle')
     .attr('dy', '0.35em')
     .style('font-size', '13px')
-    .style('fill', chartMedium);
+    .style('fill', COLORS.chartMedium);
 
   g.append('text')
     .attr('x', 0)
@@ -260,12 +284,14 @@ function drawVolumeChart(selectedCountry) {
     .text('Volume (USD billion)');
 }
 
+/**
+ * Updates volume circle sizes when country selection changes
+ */
 function updateVolumeCircles(selectedCountry) {
   const countryData = volume_data.filter((d) => d.country === selectedCountry);
   const g = d3.select('#volume-chart g');
 
-  const circlesRadiusScale = d3
-    .scaleSqrt()
+  const circlesRadiusScale = d3.scaleSqrt()
     .domain(d3.extent(countryData, (d) => d.value))
     .range([4, 16]);
 
@@ -276,18 +302,25 @@ function updateVolumeCircles(selectedCountry) {
     .attr('r', (d) => circlesRadiusScale(d.value));
 }
 
+/**
+ * Draws the share percentage scatter plot
+ */
 function drawShareChart() {
-  const svg = d3.select('#share-chart').attr('width', width).attr('height', heightShare);
+  const svg = d3.select('#share-chart')
+    .attr('width', width)
+    .attr('height', heightShare);
 
-  const g = svg.append('g').attr('transform', `translate(${marginShare.left}, ${marginShare.top})`);
+  const g = svg.append('g')
+    .attr('transform', `translate(${marginShare.left}, ${marginShare.top})`);
 
   years = [...new Set(share_data.map((d) => d.year))].sort();
   countries = [...new Set(share_data.map((d) => d.countries))];
 
-  xScale = d3.scaleTime().domain(d3.extent(years)).range([0, boundedWidthShare]);
+  xScale = d3.scaleTime()
+    .domain(d3.extent(years))
+    .range([0, boundedWidthShare]);
 
-  yScale = d3
-    .scaleLinear()
+  yScale = d3.scaleLinear()
     .domain([0, d3.max(share_data, (d) => d.value)])
     .range([boundedHeightShare, 0]);
 
@@ -300,11 +333,11 @@ function drawShareChart() {
     .remove();
 
   g.selectAll('.xaxis .tick line')
-    .style('stroke', chartLight);
+    .style('stroke', COLORS.chartLight);
 
   g.selectAll('.xaxis .tick text')
     .style('font-size', '13px')
-    .style('fill', chartMedium);
+    .style('fill', COLORS.chartMedium);
 
   // draw y axis
   g.append('g')
@@ -315,11 +348,11 @@ function drawShareChart() {
     .remove();
 
   g.selectAll('.yaxis .tick line')
-    .style('stroke', chartLight);
+    .style('stroke', COLORS.chartLight);
 
   g.selectAll('.yaxis .tick text')
     .style('font-size', '13px')
-    .style('fill', chartMedium);
+    .style('fill', COLORS.chartMedium);
 
   //draw circles for all countries
   g.selectAll(".share-dot")
@@ -329,7 +362,7 @@ function drawShareChart() {
     .attr("cx", (d) => xScale(d.year))
     .attr("cy", (d) => yScale(d.value))
     .attr("r", 4)
-    .attr("fill", chartMedium)
+    .attr("fill", COLORS.chartMedium)
     .attr("opacity", 0.6)
     .on("mouseover", function (e, d) {
       showTooltip(e, d, false);
@@ -356,6 +389,9 @@ function drawShareChart() {
   g.append('g').attr('class', 'country-line-group');
 }
 
+/**
+ * Draws the highlighted line for selected country on share chart
+ */
 function drawShareChartLine(selectedCountry) {
   const g = d3.select('#share-chart g');
   const lineGroup = d3.select('.country-line-group');
@@ -369,15 +405,15 @@ function drawShareChartLine(selectedCountry) {
     .y((d) => yScale(d.value))
     .curve(d3.curveMonotoneX);
 
-  const path = lineGroup
-    .append('path')
+  const path = lineGroup.append('path')
     .datum(countryData)
     .attr('class', 'country-line')
     .attr('d', line)
     .attr('fill', 'none')
-    .attr('stroke', aqua)
+    .attr('stroke', COLORS.aqua)
     .attr('stroke-width', 3);
 
+  // Animate line drawing
   const totalLength = path.node().getTotalLength();
 
   path
@@ -388,10 +424,14 @@ function drawShareChartLine(selectedCountry) {
     .ease(d3.easeLinear)
     .attr('stroke-dashoffset', 0);
 
+  // Update dot colors based on selection
   g.selectAll('.share-dot')
-    .attr('fill', (d) => (d.country === selectedCountry ? aqua : chartMedium));
+    .attr('fill', (d) => (d.country === selectedCountry ? COLORS.aqua : COLORS.chartMedium));
 }
 
+/**
+ * Positions tooltip relative to mouse cursor with collision detection
+ */
 function positionTooltip(e) {
   const tooltipNode = tooltip.node();
   const tooltipRect = tooltipNode.getBoundingClientRect();
@@ -415,24 +455,31 @@ function positionTooltip(e) {
     top = e.pageY + 20;
   }
 
-  tooltip.style("left", left + "px").style("top", top + "px");
+  tooltip
+    .style("left", left + "px")
+    .style("top", top + "px");
 }
 
+/**
+ * Shows tooltip with volume or share data
+ */
 function showTooltip(e, d, isVolume = false) {
   const content = isVolume
-    ? `<div><strong style="color: ${purple100}">Volume:</strong> ${formatBillion(d.value.toFixed(0))}</div>`
-    : `<div><strong style="color: ${d.country === selectedCountry ? aqua : chartMedium}">${d.country}:</strong> ${d.value.toFixed(0)}%</div>`;
+    ? `<div><strong style="color: ${COLORS.purple100}">Volume:</strong> ${formatBillion(d.value.toFixed(0))}</div>`
+    : `<div><strong style="color: ${d.country === selectedCountry ? COLORS.aqua : COLORS.chartMedium}">${d.country}:</strong> ${d.value.toFixed(0)}%</div>`;
 
   tooltip.html(content);
-
-  positionTooltip(e)
+  positionTooltip(e);
 
   tooltip
     .transition()
     .duration(200)
-    .style("opacity", 1)
+    .style("opacity", 1);
 }
 
+/**
+ * Hides the tooltip with smooth transition
+ */
 function hideTooltip() {
   tooltip
     .transition()
