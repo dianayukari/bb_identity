@@ -16,7 +16,7 @@ const svg = d3.select("#joyplot");
 const container = d3.select(".container");
 const margin = {top: 160, right: 40, bottom: 40, left: 130};
 
-let width = window.innerWidth;
+let width = window.innerWidth * 0.8;
 let height = 800;
 let currentVar = "transactions";
 
@@ -43,6 +43,15 @@ d3.csv("transactions_joyplot.csv", (d) => ({
     data = loadedData;
 
     initChart();
+
+    const rect_overlay = d3.select(".overlay").node()
+
+    document.addEventListener("click", function(e) {
+         if (e.target !== rect_overlay) {
+           hideVerticalHover();
+         }
+    })
+    
 });
 
 function initChart() {
@@ -167,7 +176,6 @@ function initChart() {
       .style("fill", chartMedium);
 
       //HOVER
-
     maxAreaHeight = densityScale(maxValue);
 
     hoverLine = g
@@ -296,7 +304,6 @@ function handleMouseMove(e) {
         .attr("cy", y);
 
       const tooltip = groupTooltips[index];
-      const containerRect = container.node().getBoundingClientRect();
       const svgRect = svg.node().getBoundingClientRect();
 
       const pageX = svgRect.left + margin.left + x;
@@ -329,7 +336,7 @@ function handleMouseMove(e) {
         .html(
             `
             <div style="font-weight: bold; color: ${color}">${groupData.group}</div>
-                <div><strong>${quarterDisplay}:</strong> ${groupData[currentVar].toFixed(0)} 
+                <div><strong>${quarterDisplay}:</strong> ${groupData[currentVar].toFixed(1)} 
             </div>
             `)
         .style("opacity", 1);
@@ -341,6 +348,7 @@ function handleMouseMove(e) {
       }
     }
   });
+
 }
 
 function updateChart(newVar) {

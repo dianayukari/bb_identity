@@ -36,9 +36,10 @@ function initChart() {
   prepareCirclePackData();
   showScreen(0);
 
-  d3.select("body").on("click.tooltip", function () {
-    hideTooltip();
-  });
+  d3.select("body")
+    .on("click.tooltip", function () {
+      hideTooltip();
+    });
 }
 
 function prepareCirclePackData() {
@@ -76,26 +77,26 @@ function showScreen(screenIndex) {
 
   updateNavigation();
 
-  d3.select("#chart-area").selectAll("*").remove();
+  d3.select("#chart-area")
+    .selectAll("*")
+    .remove();
 
   createCirclePack(circlePackData[screenIndex]);
 }
 
 function createCirclePack(screenData) {
-  const svg = d3
-    .select("#chart-area")
+  const svg = d3.select("#chart-area")
     .append("svg")
     .attr("width", width)
     .attr("height", height);
 
-  const g = svg
-    .append("g")
+  const g = svg.append("g")
     .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-  const pack = d3.pack().size([boundedWidth, boundedHeight]).padding(5);
+  const pack = d3.pack()
+    .size([boundedWidth, boundedHeight]).padding(5);
 
-  const root = d3
-    .hierarchy(screenData.data)
+  const root = d3.hierarchy(screenData.data)
     .sum((d) => d.value)
     .sort((a, b) => b.value - a.value);
 
@@ -106,8 +107,7 @@ function createCirclePack(screenData) {
     .domain(allCategories)
     .range(["#C599FF", "#BA5E00", "#9C50FF", "#FFC78C", "#FF8200"]);
 
-  const node = g
-    .selectAll(".node")
+  const node = g.selectAll(".node")
     .data(root.descendants().filter((d) => d.depth > 0))
     .enter()
     .append("g")
@@ -115,8 +115,7 @@ function createCirclePack(screenData) {
     .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
 
   //draw circles
-  node
-    .append("circle")
+  node.append("circle")
     .attr("r", (d) => d.r)
     .style("fill", (d) => {
       if (d.depth === 1) {
@@ -167,12 +166,12 @@ function createCirclePack(screenData) {
     );
   }
 
-  d3.select(".screen-title").text(screenData.title);
+  d3.select(".screen-title")
+    .text(screenData.title);
 
   const categoryNodes = node.filter((d) => d.depth > 1);
 
-  const categoriesLabels = categoryNodes
-    .append("text")
+  const categoriesLabels = categoryNodes.append("text")
     .attr("dy", "0.3em")
     .attr("x", 0)
     .style("text-anchor", "middle")
@@ -189,8 +188,7 @@ function createCirclePack(screenData) {
         const words = name.split(/\s+/);
 
         words.forEach((word, i) => {
-          textElement
-            .append("tspan")
+          textElement.append("tspan")
             .attr("x", 0)
             .attr("dy", i === 0 ? "-0.1em" : "1.1em")
             .text(word);
@@ -208,8 +206,7 @@ function createCountryLabels(svg, countryNodes) {
   const actualFontSize = isMobile ? "12px" : "14px";
 
   //temp labels to get bbox
-  const tempText = svg
-    .append("text")
+  const tempText = svg.append("text")
     .style("font-size", baseFontSize)
     .style("font-weight", "bold")
     .style("visibility", "hidden");
@@ -254,8 +251,7 @@ function createCountryLabels(svg, countryNodes) {
   tempText.remove(); //remove temp labels
 
   // draw actual labels
-  svg
-    .selectAll(".country-label")
+  svg.selectAll(".country-label")
     .data(labelData)
     .enter()
     .append("text")
@@ -274,8 +270,7 @@ function createCountryLabels(svg, countryNodes) {
         const words = d.originalText.split(/\s+/);
 
         words.forEach((word, i) => {
-          textElement
-            .append("tspan")
+          textElement.append("tspan")
             .attr("x", d.x)
             .attr("dy", i === 0 ? "0em" : "1.1em")
             .text(word);
@@ -376,14 +371,20 @@ function setupNavigationEvents() {
 }
 
 function updateNavigation() {
-  d3.select("#prev-btn").property("disabled", currentScreen === 0);
-  d3.select("#next-btn").property(
-    "disabled",
-    currentScreen === circlePackData.length - 1,
-  );
+  d3.select("#prev-btn")
+    .property("disabled", currentScreen === 0);
 
-  d3.selectAll(".dot").classed("active", false);
-  d3.select(`.dot:nth-child(${currentScreen + 1})`).classed("active", true);
+  d3.select("#next-btn")
+    .property(
+      "disabled",
+      currentScreen === circlePackData.length - 1,
+    );
+
+  d3.selectAll(".dot")
+    .classed("active", false);
+
+  d3.select(`.dot:nth-child(${currentScreen + 1})`)
+    .classed("active", true);
 }
 
 function showTooltip(event, d) {
@@ -394,7 +395,9 @@ function showTooltip(event, d) {
     <strong> in ${country}</strong><br/>
     ${volume}`;
 
-  tooltip.html(tooltipContent).style("opacity", 1);
+  tooltip.html(tooltipContent)
+    .style("opacity", 1);
+    
   positionTooltip(event);
 }
 

@@ -7,62 +7,66 @@ let lightNeonGreen = "#F6FAE6";
 const container_br = d3.select(".container_br");
 const margin = { top: 10, right: 20, bottom: 20, left: 110 };
 
-const tooltip = d3.select(".tooltip")
+const tooltip = d3.select(".tooltip");
 
-let width = Math.min(container_br.node().getBoundingClientRect().width, 1200) || 400;
+let width =
+  Math.min(container_br.node().getBoundingClientRect().width, 1200) || 800;
 let height = 200;
 
 let boundedWidth = width - margin.left - margin.right;
 let boundedHeight = height - margin.top - margin.bottom;
 
+let isMobile = window.innerWidth < 768;
+
 //LEGEND
-  const globalLegend = d3.select(".legend")
-   
-  const ebanxLegend = globalLegend.append("div")
+
+function setupLegend() {
+  const globalLegend = d3.select(".legend");
+
+  const ebanxLegend = globalLegend
+    .append("div")
     .style("display", "flex")
     .style("align-items", "center")
     .style("gap", "5px");
 
-  ebanxLegend.append("div")
+  ebanxLegend
+    .append("div")
     .style("width", "15px")
     .style("height", "15px")
     .style("background", purple100);
 
   ebanxLegend.append("span").style("font-size", "13px").text("EBANX Merchants");
 
-    const marketLegend = globalLegend.append("div")
-      .style("display", "flex")
-      .style("align-items", "center")
-      .style("gap", "5px");
+  const marketLegend = globalLegend
+    .append("div")
+    .style("display", "flex")
+    .style("align-items", "center")
+    .style("gap", "5px");
 
-    marketLegend.append("div")
-      .style("width", "12px")
-      .style("height", "12px")
-      .style("background", darkOrange)
-      .style("border", `2px solid ${lightNeonGreen}`)
-      .style("border-radius", "50%");
+  marketLegend
+    .append("div")
+    .style("width", "12px")
+    .style("height", "12px")
+    .style("background", darkOrange)
+    .style("border", `2px solid ${lightNeonGreen}`)
+    .style("border-radius", "50%");
 
-    marketLegend.append("span")
-      .style("font-size", "13px")
-      .text("Market Average");
+  marketLegend.append("span").style("font-size", "13px").text("Market Average");
+}
 
 //read and parse data
 d3.csv("pay_profile_br.csv", (d) => ({
- 
-    vertical: d.merchant_vertical_commercial,
-    method: d.metodo_de_pagamento_ajustado,
-    value: +d.value * 100,
-    type: d.type,
-
+  vertical: d.merchant_vertical_commercial,
+  method: d.metodo_de_pagamento_ajustado,
+  value: +d.value * 100,
+  type: d.type,
 })).then((loadedData) => {
+  data_ebanx = loadedData.filter((d) => d.type == "pct_tpv_ebanx_b2b");
+  data_market = loadedData.filter((d) => d.type == "market_average");
 
-    data_ebanx = loadedData.filter((d) => d.type == "pct_tpv_ebanx_b2b");
-    data_market = loadedData.filter((d) => d.type == "market_average");
-
-    initChartBr();
-
+  setupLegend();
+  initChartBr();
 });
-
 
 function initChartBr() {
   const groupedEbanx = d3.group(data_ebanx, (d) => d.vertical);
@@ -71,119 +75,123 @@ function initChartBr() {
   const verticals = Array.from(groupedEbanx, ([vertical, methods]) => ({
     vertical: vertical,
     methods: methods.sort((a, b) => b.value - a.value),
-    marketData: groupedMarket.get(vertical) || []
+    marketData: groupedMarket.get(vertical) || [],
   }));
 
   verticals.forEach((verticalData, index) => {
     createBarChart(verticalData, index, container_br);
   });
+
+  d3.select("body")
+    .on("click.tooltip", function () {
+      hideTooltip();
+    });
 }
 
 function createBarChart(verticalData, index, container) {
+  const svg = container.append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidyMid meet")
+    .attr("width", width);
 
-    const svg = container
-        .append("svg")
-        .attr("viewBox", `0 0 ${width} ${height}`)
-        .attr("preserveAspectRatio", "xMidyMid meet")
-        .attr("width", width)
+  const g = svg.append("g")
+    .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    const g = svg
-      .append("g")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`);
-  
-    //scales
-    const xScale = d3.scaleLinear()
-        .domain([0, 100])
-        .range([0, boundedWidth]);
+  //scales
+  const xScale = d3.scaleLinear()
+    .domain([0, 100])
+    .range([0, boundedWidth]);
 
-    const yScale = d3.scaleBand()
-        .domain(verticalData.methods.map((d) => d.method))
-        .range([20, boundedHeight])
-        .padding(0.1);
+  const yScale = d3.scaleBand()
+    .domain(verticalData.methods.map((d) => d.method))
+    .range([20, boundedHeight])
+    .padding(0.1);
 
-    //draw bars
-    g.selectAll(".bar")
-      .data(verticalData.methods)
-      .enter()
-      .append("rect")
-      .attr("class", "bar")
-      .attr("x", 0)
-      .attr("y", (d) => yScale(d.method))
-      .attr("width", (d) => xScale(d.value))
-      .attr("height", yScale.bandwidth())
-      .attr("fill", purple100)
-      .on("mouseover", function (event, d) {
-          tooltip.transition().duration(200).style("opacity", 1);
-          tooltip.html(
-              `<div><strong style="color: ${purple100}">EBANX Merchants:</strong> ${d.value.toFixed(0)}</div>`
-          )
-          .style("left", event.pageX + 10 + "px")
-          .style("top", event.pageY - 10 + "px");
-      })
-      .on("mouseout", function (event, d) {
-        tooltip.transition().duration(200).style("opacity", 0);
-      });
+  //draw bars
+  g.selectAll(".bar")
+    .data(verticalData.methods)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("x", 0)
+    .attr("y", (d) => yScale(d.method))
+    .attr("width", (d) => xScale(d.value))
+    .attr("height", yScale.bandwidth())
+    .attr("fill", purple100)
+    .on("mouseover", function (e, d) {
+      showTooltip(e, d, false);
+    })
+    .on("mouseout", function (event, d) {
+      hideTooltip();
+    })
+    .on("click", function (e, d) {
+      e.preventDefault();
+      e.stopPropagation();
 
-    // draw dots
-    g.selectAll(".market-dot")
-      .data(verticalData.marketData)
-      .enter()
-      .append("circle")
-      .attr("cx", (d) => xScale(d.value))
-      .attr("cy", (d) => yScale(d.method) + yScale.bandwidth() / 2)
-      .attr("r", 5)
-      .attr("fill", darkOrange)
-      .attr("stroke", lightNeonGreen)
-      .attr("stroke-width", 1)
-      .on("mouseover", function (e, d) {
-        tooltip.transition().duration(200).style("opacity", 1);
-          tooltip
-            .html(
-              `<div><strong style="color: ${darkOrange}">Market Average:</strong> ${d.value.toFixed(0)}</div>`
-            )
-            .style("left", e.pageX + 10 + "px")
-            .style("top", e.pageY - 10 + "px");
-      })
-      .on("mouseout", function (event, d) {
-        tooltip.transition().duration(200).style("opacity", 0);
-      });
+      showTooltip(e, d, false);
+      positionTooltip(e);
+    });
 
-    //draw X axis
-    g.append("g")
-        .attr("class", "xaxis")
-        .attr("transform", `translate(0, ${height - margin.bottom - 10})`)
-        .call(d3.axisBottom(xScale)
-            .ticks(getResponsiveTickCount())
-        )
-        .select(".domain").remove()
+  // draw dots
+  g.selectAll(".market-dot")
+    .data(verticalData.marketData)
+    .enter()
+    .append("circle")
+    .attr("cx", (d) => xScale(d.value))
+    .attr("cy", (d) => yScale(d.method) + yScale.bandwidth() / 2)
+    .attr("r", 5)
+    .attr("fill", darkOrange)
+    .attr("stroke", lightNeonGreen)
+    .attr("stroke-width", 1)
+    .on("mouseover", function (e, d) {
+        showTooltip(e, d, true)
+    })
+    .on("mouseout", function (event, d) {
+        hideTooltip();
+    })
+    .on("click", function(e, d) {
+      e.preventDefault();
+      e.stopPropagation();
 
-    g.selectAll(".xaxis .tick text")
-        .style("fill", chartMedium)
-        .style("font-size", "13px")
+      showTooltip(e, d, true);
+      positionTooltip(e);
+    })
 
-    g.selectAll(".xaxis .tick line").style("stroke", chartLight);
+  //draw X axis
+  g.append("g")
+    .attr("class", "xaxis")
+    .attr("transform", `translate(0, ${height - margin.bottom - 10})`)
+    .call(d3.axisBottom(xScale).ticks(getResponsiveTickCount()))
+    .select(".domain")
+    .remove();
 
-    //draw Y axis
-    g.selectAll(".method-label")
-        .data(verticalData.methods)
-        .enter()
-        .append("text")
-        .attr("class", "method-label")
-        .attr("x", -10)
-        .attr("y", d => yScale(d.method) + yScale.bandwidth()/2 + 5)
-        .attr("text-anchor", "end")
-        .text(d => d.method)
-        .style("font-size", "13px")
+  g.selectAll(".xaxis .tick text")
+    .style("fill", chartMedium)
+    .style("font-size", "13px");
 
-    //vertical title
-    svg.append("text")
-        .attr("x", 0)
-        .attr("y", 15)
-        .text(verticalData.vertical)
-        .style("font-size", "14px")
-        .style("font-weight", "bold")
+  g.selectAll(".xaxis .tick line")
+    .style("stroke", chartLight);
 
-      
+  //draw Y axis
+  g.selectAll(".method-label")
+    .data(verticalData.methods)
+    .enter()
+    .append("text")
+    .attr("class", "method-label")
+    .attr("x", -10)
+    .attr("y", (d) => yScale(d.method) + yScale.bandwidth() / 2 + 5)
+    .attr("text-anchor", "end")
+    .text((d) => d.method)
+    .style("font-size", "13px");
+
+  //vertical title
+  svg
+    .append("text")
+    .attr("x", 0)
+    .attr("y", 15)
+    .text(verticalData.vertical)
+    .style("font-size", "14px")
+    .style("font-weight", "bold");
 }
 
 function getResponsiveTickCount() {
@@ -194,5 +202,54 @@ function getResponsiveTickCount() {
   } else {
     return 5;
   }
-  
+}
+
+function positionTooltip(e) {
+  const tooltipNode = tooltip.node();
+  const tooltipRect = tooltipNode.getBoundingClientRect();
+
+  let left = e.pageX + 10;
+  let top = e.pageY - 10;
+
+  if (left + tooltipRect.width > window.innerWidth - 20) {
+    left = e.pageX - tooltipRect.width - 10;
+  }
+
+  if (top + tooltipRect.height > window.innerHeight - 20) {
+    top = e.pageY - tooltipRect.height - 10;
+  }
+
+  if (left < 10) {
+    left = 10;
+  }
+
+  if (top < 10) {
+    top = e.pageY + 20;
+  }
+
+  tooltip
+    .style("left", left + "px")
+    .style("top", top + "px");
+}
+
+function showTooltip(e, d, isMarket = false) {
+  const content = isMarket
+    ? `<div><strong style="color: ${darkOrange}">Market Average:</strong> ${d.value.toFixed(0)}%</div>`
+    : `<div><strong style="color: ${purple100}">EBANX Merchants:</strong> ${d.value.toFixed(0)}%</div>`;
+
+  tooltip.html(content);
+
+  positionTooltip(e)
+
+  tooltip
+    .transition()
+    .duration(200)
+    .style("opacity", 1)
+}
+
+function hideTooltip() {
+  tooltip
+    .transition()
+    .duration(200)
+    .style("opacity", 0);
 }

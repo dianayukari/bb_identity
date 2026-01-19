@@ -53,6 +53,10 @@ function initChart() {
   drawVolumeChart(selectedCountry);
   drawShareChart();
   drawShareChartLine(selectedCountry)
+
+  d3.select("body").on("click.tooltip", function () {
+    hideTooltip();
+  });
 }
 
 function drawList() {
@@ -139,8 +143,7 @@ function drawVolumeChart(selectedCountry) {
   const firstYear = Math.min(...years);
   const lastYear = Math.max(...years);
 
-  const arc = d3
-    .arc()
+  const arc = d3.arc()
     .innerRadius(radius)
     .outerRadius(radius)
     .startAngle(angleScale(firstYear))
@@ -160,8 +163,7 @@ function drawVolumeChart(selectedCountry) {
   const arrowSide2X = arrowTipX - 6;
   const arrowSide2Y = arrowTipY + 4;
 
-  const centerArrow = g
-    .append('g')
+  const centerArrow = g.append('g')
     .attr('class', 'center-arrow')
     .attr('transform', `translate(${centerX + 5}, ${centerY}) rotate(-90)`);
 
@@ -181,8 +183,7 @@ function drawVolumeChart(selectedCountry) {
     L ${arrowSide1X} ${arrowSide1Y}
   `;
 
-  centerArrow
-    .append('path')
+  centerArrow.append('path')
     .attr('d', continuousPath)
     .attr('fill', 'none')
     .attr('stroke', chartLight)
@@ -215,15 +216,18 @@ function drawVolumeChart(selectedCountry) {
     })
     .attr('r', (d) => circlesRadiusScale(d.value))
     .attr('fill', purple100)
-    .on('mouseover', function (event, d) {
-      tooltip.transition().duration(200).style('opacity', 1);
-      tooltip
-        .html(`<div><strong style="color: ${purple100}">Volume:</strong> ${formatBillion(d.value.toFixed(0))}</div>`)
-        .style('left', event.pageX + 10 + 'px')
-        .style('top', event.pageY - 10 + 'px');
+    .on('mouseover', function (e, d) {
+       showTooltip(e, d, true);
     })
-    .on('mouseout', function (event, d) {
-      tooltip.transition().duration(200).style('opacity', 0);
+    .on('mouseout', function (e, d) {
+      hideTooltip()
+    })
+    .on("click", function(e,d) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      showTooltip(e, d, true);
+      positionTooltip(e);
     });
 
   //year labels
@@ -318,30 +322,27 @@ function drawShareChart() {
     .style('fill', chartMedium);
 
   //draw circles for all countries
-  g.selectAll('.share-dot')
+  g.selectAll(".share-dot")
     .data(share_data)
-    .enter()
-    .append('circle')
-    .attr('class', 'share-dot')
-    .attr('cx', (d) => xScale(d.year))
-    .attr('cy', (d) => yScale(d.value))
-    .attr('r', 4)
-    .attr('fill', chartMedium)
-    .attr('opacity', 0.6)
-    .on('mouseover', function (event, d) {
-      tooltip.transition().duration(200).style('opacity', 1);
-      tooltip
-        .html(
-          `<div>
-          <strong style="color: ${d.country === selectedCountry ? aqua : chartMedium}">
-          ${d.country}:</strong> 
-          ${d.value.toFixed(0)}%</div>`
-        )
-        .style('left', event.pageX + 10 + 'px')
-        .style('top', event.pageY - 10 + 'px');
+    .enter().append("circle")
+    .attr("class", "share-dot")
+    .attr("cx", (d) => xScale(d.year))
+    .attr("cy", (d) => yScale(d.value))
+    .attr("r", 4)
+    .attr("fill", chartMedium)
+    .attr("opacity", 0.6)
+    .on("mouseover", function (e, d) {
+      showTooltip(e, d, false);
     })
-    .on('mouseout', function (event, d) {
-      tooltip.transition().duration(200).style('opacity', 0);
+    .on("mouseout", function (e, d) {
+      hideTooltip();
+    })
+    .on("click", function (e, d) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      showTooltip(e, d, false);
+      positionTooltip(e);
     });
 
   //title
@@ -363,8 +364,7 @@ function drawShareChartLine(selectedCountry) {
 
   const countryData = share_data.filter((d) => d.country === selectedCountry);
 
-  const line = d3
-    .line()
+  const line = d3.line()
     .x((d) => xScale(d.year))
     .y((d) => yScale(d.value))
     .curve(d3.curveMonotoneX);
@@ -388,5 +388,54 @@ function drawShareChartLine(selectedCountry) {
     .ease(d3.easeLinear)
     .attr('stroke-dashoffset', 0);
 
-  g.selectAll('.share-dot').attr('fill', (d) => (d.country === selectedCountry ? aqua : chartMedium));
+  g.selectAll('.share-dot')
+    .attr('fill', (d) => (d.country === selectedCountry ? aqua : chartMedium));
+}
+
+function positionTooltip(e) {
+  const tooltipNode = tooltip.node();
+  const tooltipRect = tooltipNode.getBoundingClientRect();
+
+  let left = e.pageX + 10;
+  let top = e.pageY - 10;
+
+  if (left + tooltipRect.width > window.innerWidth - 20) {
+    left = e.pageX - tooltipRect.width - 10;
+  }
+
+  if (top + tooltipRect.height > window.innerHeight - 20) {
+    top = e.pageY - tooltipRect.height - 10;
+  }
+
+  if (left < 10) {
+    left = 10;
+  }
+
+  if (top < 10) {
+    top = e.pageY + 20;
+  }
+
+  tooltip.style("left", left + "px").style("top", top + "px");
+}
+
+function showTooltip(e, d, isVolume = false) {
+  const content = isVolume
+    ? `<div><strong style="color: ${purple100}">Volume:</strong> ${formatBillion(d.value.toFixed(0))}</div>`
+    : `<div><strong style="color: ${d.country === selectedCountry ? aqua : chartMedium}">${d.country}:</strong> ${d.value.toFixed(0)}%</div>`;
+
+  tooltip.html(content);
+
+  positionTooltip(e)
+
+  tooltip
+    .transition()
+    .duration(200)
+    .style("opacity", 1)
+}
+
+function hideTooltip() {
+  tooltip
+    .transition()
+    .duration(200)
+    .style("opacity", 0);
 }

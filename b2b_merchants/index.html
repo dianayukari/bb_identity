@@ -45,11 +45,19 @@
         pointer-events: none;
     }
 
+    #chart-area {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 30px;
+    }
+
     .container_br, .container_mex {
         display: flex;
         flex-direction: column;
         gap: 20px;
-        flex: 1
+        flex: 1 1 300px;
+        width: 100%;
     }
 
 
@@ -58,15 +66,17 @@
     <div class="containers">
         <div class="legend"></div>
         <div class="tooltip"></div>
-        <div class="container_br">
-            <div>
-                <h2>Brazil</h2>
+        <div id="chart-area">
+            <div class="container_br">
+                <div>
+                    <h2>Brazil</h2>
+                </div>
             </div>
-        </div>
 
-        <div class="container_mex">
-            <div>
-                <h2>Mexico</h2>
+            <div class="container_mex">
+                <div>
+                    <h2>Mexico</h2>
+                </div>
             </div>
         </div>
     </div>
