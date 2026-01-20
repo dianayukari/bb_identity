@@ -180,7 +180,7 @@ function showTooltip(e, d) {
   const countryName = d.country;
   const tooltipContent =
     `<strong style="color: ${COLORS.purple100}">${countryName}</strong><br/>
-      ${d.cat_split}: ${d.value.toFixed(1)}`;
+      <strong>${d.cat_split}:</strong> ${d.value.toFixed(0)}%`;
 
   const tooltipWidth = 100;
   const tooltipHeight = 50;

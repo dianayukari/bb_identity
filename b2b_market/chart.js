@@ -495,12 +495,12 @@ function updateNavigation() {
  * Displays tooltip with category information
  */
 function showTooltip(event, d) {
-  const volume = d.value.toLocaleString();
+  const volume = d.value.toFixed(2);
   const country = d.parent.data.name;
   const tooltipContent = `
     <strong style="color: ${colorScale(d.data.name)}">${d.data.name}</strong>
     <strong> in ${country}</strong><br/>
-    ${volume}`;
+    USD ${volume} bi`; //1 casa decimal
 
   tooltip.html(tooltipContent).style("opacity", 1);
 

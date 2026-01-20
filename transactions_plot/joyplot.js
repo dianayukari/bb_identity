@@ -378,7 +378,7 @@ function handleMouseMove(e) {
         .html(
             `
             <div style="font-weight: bold; color: ${color}">${groupData.group}</div>
-                <div><strong>${quarterDisplay}:</strong> ${groupData[currentVar].toFixed(1)} 
+                <div><strong>${quarterDisplay}:</strong> ${groupData[currentVar].toFixed(0)}% 
             </div>
             `)
         .style("opacity", 1);

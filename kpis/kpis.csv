@@ -1,0 +1,70 @@
+"country_name","metodo_de_pagamento_ajustado","is_A2A","type","value"
+"Brazil","Bank Transfer",FALSE,"Transactions",2.37423703909133
+"Brazil","Bank Transfer",FALSE,"Average Ticket",83.8578995387347
+"Brazil","Bank Transfer",FALSE,"Loyalty",NA
+"Brazil","Boleto",FALSE,"Loyalty",0.654946381678156
+"Brazil","Boleto",FALSE,"Transactions",1.97667920496018
+"Brazil","Boleto",FALSE,"Average Ticket",57.2129862676886
+"Brazil","Credit Card",FALSE,"Loyalty",0.818968351164937
+"Brazil","Credit Card",FALSE,"Transactions",2.78457941393371
+"Brazil","Credit Card",FALSE,"Average Ticket",14.1743702669763
+"Brazil","Debit Card",FALSE,"Loyalty",0.675111555841768
+"Brazil","Debit Card",FALSE,"Transactions",2.99236838823999
+"Brazil","Debit Card",FALSE,"Average Ticket",4.29065035091382
+"Brazil","Pix",TRUE,"Loyalty",0.827986505638278
+"Brazil","Pix",TRUE,"Transactions",4.01599967383824
+"Brazil","Pix",TRUE,"Average Ticket",6.04996797697603
+"Colombia","Credit Card",FALSE,"Loyalty",0.803525772984849
+"Colombia","Credit Card",FALSE,"Transactions",1.78403913402419
+"Colombia","Credit Card",FALSE,"Average Ticket",37.2902473829899
+"Colombia","Debit Card",FALSE,"Loyalty",0.811173178715429
+"Colombia","Debit Card",FALSE,"Transactions",1.72461631075004
+"Colombia","Debit Card",FALSE,"Average Ticket",19.4744441502552
+"Colombia","Efecty",FALSE,"Loyalty",0.752016144672174
+"Colombia","Efecty",FALSE,"Transactions",2.50711043014421
+"Colombia","Efecty",FALSE,"Average Ticket",30.4794417975969
+"Colombia","Nequi",FALSE,"Loyalty",0.815049065041667
+"Colombia","Nequi",FALSE,"Transactions",2.73785763120615
+"Colombia","Nequi",FALSE,"Average Ticket",24.9766084439322
+"Colombia","PSE",TRUE,"Loyalty",0.749692972812184
+"Colombia","PSE",TRUE,"Transactions",2.18220798694265
+"Colombia","PSE",TRUE,"Average Ticket",36.5345773166569
+"India","UPI 1x",TRUE,"Loyalty",0.273798303487276
+"India","UPI 1x",TRUE,"Transactions",2.10122485109641
+"India","UPI 1x",TRUE,"Average Ticket",11.0595381274862
+"Mexico","Credit Card",FALSE,"Loyalty",0.882436309494291
+"Mexico","Credit Card",FALSE,"Transactions",2.03631468962862
+"Mexico","Credit Card",FALSE,"Average Ticket",33.7921743473355
+"Mexico","Debit Card",FALSE,"Loyalty",0.865139746996459
+"Mexico","Debit Card",FALSE,"Transactions",2.0197561625468
+"Mexico","Debit Card",FALSE,"Average Ticket",19.6947743995088
+"Mexico","Mercado Pago",FALSE,"Loyalty",0.860124674285512
+"Mexico","Mercado Pago",FALSE,"Transactions",3.41178939480441
+"Mexico","Mercado Pago",FALSE,"Average Ticket",19.5343033324119
+"Mexico","OXXO",FALSE,"Loyalty",0.868584060990967
+"Mexico","OXXO",FALSE,"Transactions",1.97670140865084
+"Mexico","OXXO",FALSE,"Average Ticket",32.8720906760007
+"Mexico","Spei",TRUE,"Loyalty",0.805976938255819
+"Mexico","Spei",TRUE,"Transactions",2.17940884678933
+"Mexico","Spei",TRUE,"Average Ticket",68.3734082810689
+"Nigeria","Bank Transfer",TRUE,"Loyalty",0.961685823754789
+"Nigeria","Bank Transfer",TRUE,"Transactions",1.9413656623667
+"Nigeria","Bank Transfer",TRUE,"Average Ticket",18.9765104294768
+"Nigeria","Credit Card",FALSE,"Loyalty",0.746451107602627
+"Nigeria","Credit Card",FALSE,"Transactions",1.48280538560877
+"Nigeria","Credit Card",FALSE,"Average Ticket",12.5826679153889
+"Nigeria","Debit Card",FALSE,"Loyalty",0.874165054051862
+"Nigeria","Debit Card",FALSE,"Transactions",1.27539084626473
+"Nigeria","Debit Card",FALSE,"Average Ticket",9.6774594121871
+"South Africa","Capitec Pay",TRUE,"Loyalty",0.999588286758272
+"South Africa","Capitec Pay",TRUE,"Transactions",1.13707024090798
+"South Africa","Capitec Pay",TRUE,"Average Ticket",64.068544935191
+"South Africa","Credit Card",FALSE,"Transactions",1.11690003256268
+"South Africa","Credit Card",FALSE,"Average Ticket",49.9704714814618
+"South Africa","Credit Card",FALSE,"Loyalty",NA
+"South Africa","Debit Card",FALSE,"Loyalty",0.53909891248058
+"South Africa","Debit Card",FALSE,"Transactions",1.07132831899809
+"South Africa","Debit Card",FALSE,"Average Ticket",48.4689157709771
+"South Africa","Ozow",TRUE,"Loyalty",0.938954415046222
+"South Africa","Ozow",TRUE,"Transactions",1.80618204922345
+"South Africa","Ozow",TRUE,"Average Ticket",80.7315773161485
