@@ -72,11 +72,20 @@
         text-align: center;
         gap: 10px;
     }
+    
 
     .screen-title {
         display: block;
         font-size: 16px;
         font-weight: bold;
+    }
+
+    #screen-description {
+        max-width: 400px;
+        font-size: 14px;
+        color: #333;
+        margin: 0 auto 10px auto;
+        line-height: 1.4;
     }
 
     .dots-indicator {
@@ -128,12 +137,12 @@
             <button id="prev-btn" class="nav-btn" disabled>❮</button>
             <div id="screen-indicator">
                 <span class="screen-title"></span>
+                <p id="screen-description"></p>
                 <div class="dots-indicator">
                     <span class="dot active"></span>
                     <span class="dot"></span>
                     <span class="dot"></span>
                 </div>
-                <p>descrição</p>
             </div>
             <button id="next-btn" class="nav-btn">❯</button>
         </div>

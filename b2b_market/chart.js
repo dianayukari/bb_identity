@@ -42,6 +42,18 @@ const POSITIONING = {
   },
 };
 
+let description = [
+  { title: "B2B Powerhouses",
+    descr: "Large and mature B2B digital ecosystems, such as Brazil, India and Mexico, where scale is established and market presence is essential."
+  },
+  { title: "B2B Expansion Priorities",
+    descr: "Markets like Chile, Argentina and the Philippines, with solid momentum and growing scale, representing the next logical step for B2B expansion."
+  },
+  { title: "Next-Wave B2B Markets",
+    descr: "Early-stage B2B markets, including Kenya, Nigeria and Ecuador, which are at an early stage of development, yet display promising long-term growth dynamics."
+  }
+]
+
 let boundedWidth = CHART_CONFIG.width - CHART_CONFIG.margin.left - CHART_CONFIG.margin.right;
 let boundedHeight = CHART_CONFIG.height - CHART_CONFIG.margin.top - CHART_CONFIG.margin.bottom;
 
@@ -150,6 +162,10 @@ function prepareCirclePackData() {
 function showScreen(screenIndex) {
   currentScreen = screenIndex;
   updateNavigation();
+
+  //change description of screen
+  const descr = description[currentScreen] || "";
+  d3.select("#screen-description").text(descr.descr)
 
   // Clear previous chart content
   d3.select("#chart-area").selectAll("*").remove();
